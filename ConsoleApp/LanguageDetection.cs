@@ -43,8 +43,8 @@ namespace ConsoleApp
             //    Console.WriteLine($"Actual:\t{lang}\t\nCLD2\t{doc2.Language}");
             //    Console.WriteLine();
             //}
-            //var doc2 = new Document(File.Process(File.FetchData(connectrionStrPar, i)));
-            var doc2 = new Document("Familie Müller plant ihren Urlaub. Sie geht in ein Reisebüro und lässt sich von einem Angestellten beraten.");
+            var doc2 = new Document(File.Process(File.FetchData(connectrionStrPar, i)));
+            //var doc2 = new Document("Familie Müller plant ihren Urlaub. Sie geht in ein Reisebüro und lässt sich von einem Angestellten beraten.");
             cld2LanguageDetector.Process(doc2);
             Console.WriteLine($"\nCLD2\t{doc2.Language}");
 
