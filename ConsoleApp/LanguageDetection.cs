@@ -15,38 +15,24 @@ namespace ConsoleApp
 {
     public static class LanguageDetection
     {
-        public static async Task Detect()
+        public static async Task Detect(string testString)
         {
 
-            int i = 1;
-            string connectrionStrPar = "Data Source = (localdb)\\MSSQLLocalDB; Initial Catalog = master; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
-            //Console.WriteLine(File.Process(File.FetchData(connectrionStrPar, i)));
 
             // 1. Language Detection
-            Console.OutputEncoding = Encoding.UTF8;
 
-            //ApplicationLogging.SetLoggerFactory(LoggerFactory.Create(lb => lb.AddConsole()));
             Storage.Current = new OnlineRepositoryStorage(new DiskStorage("catalyst-models"));
-            Console.WriteLine("Loading models... This might take a bit longer the first time you run this sample, as the models have to be downloaded from the online repository");
+            //Console.WriteLine("Loading models... This might take a bit longer the first time you run this sample, as the models have to be downloaded from the online repository");
             var cld2LanguageDetector = await LanguageDetector.FromStoreAsync(Language.Any, Version.Latest, "");
             //var fastTextLanguageDetector = await FastTextLanguageDetector.FromStoreAsync(Language.Any, Version.Latest, "");
-            //foreach (var (lang, text) in LanguageData.LongSamples)
-            //{
-            //    //var doc = new Document(File.Process(File.FetchData(connectrionStrPar, i)));
-            //    //fastTextLanguageDetector.Process(doc);
+            
+            //var doc = new Document(testString);
+            //fastTextLanguageDetector.Process(doc);
 
-            //    var doc2 = new Document(File.Process(File.FetchData(connectrionStrPar, i)));
-            //    cld2LanguageDetector.Process(doc2);
-
-            //    //Console.WriteLine(text);
-            //    //Console.WriteLine($"Actual:\t{lang}\nFT:\t{doc.Language}\nCLD2\t{doc2.Language}");
-            //    Console.WriteLine($"Actual:\t{lang}\t\nCLD2\t{doc2.Language}");
-            //    Console.WriteLine();
-            //}
-            var doc2 = new Document(File.Process(File.FetchData(connectrionStrPar, i)));
+            var doc2 = new Document(testString);
             //var doc2 = new Document("Familie Müller plant ihren Urlaub. Sie geht in ein Reisebüro und lässt sich von einem Angestellten beraten.");
             cld2LanguageDetector.Process(doc2);
-            Console.WriteLine($"\nCLD2\t{doc2.Language}");
+            Console.WriteLine($"CLD2\t{doc2.Language}");
 
 
 
