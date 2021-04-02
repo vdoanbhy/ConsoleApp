@@ -12,6 +12,8 @@ namespace ConsoleApp
         public string fileName;
         public string status;
         public string score;
+        public bool test;
+        public string category;
 
         public NLPFile(IDataRecord record)
         {
@@ -19,7 +21,10 @@ namespace ConsoleApp
             id = (int)record[0];
             fileName = (string)record[1];
             status = record[2].ToString();
-            score = record[2].ToString();
+            score = record[3].ToString();
+            test = (bool)record[4];
+            category = record[5].ToString();
+
 
         }
 
