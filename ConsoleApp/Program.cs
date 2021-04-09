@@ -14,9 +14,10 @@ namespace ConsoleApp
         static async Task Main(string[] args)
         //static void Main(string[] args)
         {
-            await LatentDirichletAllocation.LDAllocation();// 00:02:51.14
+            
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
+            await LatentDirichletAllocation.LDAllocation();
             ////await LatentDirichletAllocation.LDAllocation();
             //string connectionStr = "Data Source = (localdb)\\MSSQLLocalDB; Initial Catalog = master; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
             //SqlConnection connection = null;

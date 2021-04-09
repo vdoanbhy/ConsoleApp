@@ -16,6 +16,7 @@ namespace ConsoleApp
         public static async Task LDAllocation()
         {
             Storage.Current = new OnlineRepositoryStorage(new DiskStorage("catalyst-models"));
+            //var train = await Corpus.Reuters.GetAsync();
             string connectionStr = "Data Source = (localdb)\\MSSQLLocalDB; Initial Catalog = master; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
             SqlConnection connection = null;
             SqlCommand command = null;
@@ -30,9 +31,8 @@ namespace ConsoleApp
                 command1 = new SqlCommand(sqlQuery1, connection);
                 connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
-                System.Collections.Generic.List<Document> trainDocs = new System.Collections.Generic.List<Document>();
-                
-                System.Collections.Generic.List<Document> testDocs = new System.Collections.Generic.List<Document>();
+                System.Collections.Generic.List<Document> train = new System.Collections.Generic.List<Document>();
+                System.Collections.Generic.List<Document> test = new System.Collections.Generic.List<Document>();
                 System.Text.RegularExpressions.Regex reg = new System.Text.RegularExpressions.Regex("/[^/]*/");
                 while (reader.Read())
                 {
@@ -42,43 +42,48 @@ namespace ConsoleApp
                     string label = reg.Matches(((string)reader[1]))[2].Value;
                     label = label.Trim('/');
                     doc.Labels.Add(label) ;
-                    trainDocs.Add(doc); 
+                    train.Add(doc); 
+                    var trainDocs = nlp.Process(train).ToArray();
+                    using (var lda = new LDA(Language.English, 0, "reuters-lda"))
+                    {
+                        lda.Data.NumberOfTopics = 20; //Arbitrary number of topics
+                        lda.Train(trainDocs, Environment.ProcessorCount);
+                        await lda.StoreAsync();
+                    }
+
                 }
                 reader.Close();
 
-                using (var lda = new LDA(Language.English, 0, "reuters-lda"))
-                {
-                    lda.Data.NumberOfTopics = 20; //Arbitrary number of topics
-                    lda.Train(trainDocs, Environment.ProcessorCount);
-                    await lda.StoreAsync();
-                }
-
+                
                 SqlDataReader reader1 = command1.ExecuteReader();
                 while (reader1.Read())
                 {
                     NLPFile flTest = new NLPFile((IDataRecord)reader1);
                     //Console.WriteLine(flTest.FetchData());
-                    testDocs.Add(new Document(flTest.FetchData()));
-                    
-                }
-                reader1.Close();
-
-                using (var lda = await LDA.FromStoreAsync(Language.English, 0, "reuters-lda"))
-                {
-                    foreach (var doc in testDocs)
+                    var doc1 = new Document(flTest.FetchData(), Language.English);
+                    string label = reg.Matches(((string)reader[1]))[2].Value;
+                    label = label.Trim('/');
+                    doc1.Labels.Add(label);
+                    test.Add(doc1);
+                    var testDocs = nlp.Process(test).ToArray();
+                    using (var lda = await LDA.FromStoreAsync(Language.English, 0, "reuters-lda"))
                     {
-                        if (lda.TryPredict(doc, out var topics))
+                        foreach (var doc in testDocs)
                         {
-                            var docTopics = string.Join("\n", topics.Select(t => lda.TryDescribeTopic(t.TopicID, out var td) ? $"[{t.Score:n3}] => {td.ToString()}" : ""));
+                            if (lda.TryPredict(doc, out var topics))
+                            {
+                                var docTopics = string.Join("\n", topics.Select(t => lda.TryDescribeTopic(t.TopicID, out var td) ? $"[{t.Score:n3}] => {td.ToString()}" : ""));
 
-                            Console.WriteLine("------------------------------------------");
-                            Console.WriteLine(doc.Value);
-                            Console.WriteLine("------------------------------------------");
-                            Console.WriteLine(docTopics);
-                            Console.WriteLine("------------------------------------------\n\n");
+                                Console.WriteLine("------------------------------------------");
+                                Console.WriteLine(doc.Value);
+                                Console.WriteLine("------------------------------------------");
+                                Console.WriteLine(docTopics);
+                                Console.WriteLine("------------------------------------------\n\n");
+                            }
                         }
                     }
                 }
+                reader1.Close();
             }
             catch (Exception e)
             {
